@@ -1,0 +1,1567 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Encuesta de Bienestar Integral</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: una sola columna tipo formulario (cursos → preguntas por curso → preguntas generales) y al final el resultado estimado con recomendaciones */
+:root{
+  --bg:#F5F6F8; --panel:#FFFFFF; --ink:#1C1B3A; --muted:#5B5D72; --line:#E1E2EA; --accent:#3D3BB0; --accent-soft:#E8E8F8; --on-accent:#FFFFFF;
+  --bajo:#B9382A; --medio:#B7740F; --alto:#2B7A49; --bajo-soft:#FBEBEA; --medio-soft:#FBF1DF; --alto-soft:#E5F3EA;
+  --f-display:'Space Grotesk', 'Segoe UI', Arial, sans-serif; --f-body:'Inter', 'Segoe UI', Arial, sans-serif; --f-mono:'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12131C; --panel:#1B1C29; --ink:#ECECF6; --muted:#A5A7BC; --line:#2E3042; --accent:#9C9BF2; --accent-soft:#2A2A4A; --on-accent:#12131C;
+  --bajo:#F08A7D; --medio:#F0B95C; --alto:#6FCF97; --bajo-soft:#3A2321; --medio-soft:#3A2E1A; --alto-soft:#1D3527; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12131C; --panel:#1B1C29; --ink:#ECECF6; --muted:#A5A7BC; --line:#2E3042; --accent:#9C9BF2; --accent-soft:#2A2A4A; --on-accent:#12131C;
+  --bajo:#F08A7D; --medio:#F0B95C; --alto:#6FCF97; --bajo-soft:#3A2321; --medio-soft:#3A2E1A; --alto-soft:#1D3527; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 56px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:clamp(26px,4.4vw,34px);letter-spacing:-0.02em}
+h2{font-size:19px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.sub{color:var(--muted);max-width:65ch;margin:8px 0 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.phead{display:flex;flex-direction:column;gap:4px}
+.phead p{margin:0;color:var(--muted);font-size:13px}
+.q{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.q + .q{border-top:1px solid var(--line);padding-top:18px}
+.q legend,.q > label{font-weight:500;padding:0;margin-bottom:8px}
+.q .help{font-size:12px;color:var(--muted);margin-top:-6px}
+.num{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.num input{font:inherit;font-family:var(--f-mono);font-variant-numeric:tabular-nums;width:110px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.num span{color:var(--muted);font-size:13px}
+.likert{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.likert.wrap6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.likert.two{grid-template-columns:repeat(2,minmax(0,160px))}
+.likert label{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:9px 4px;border:1px solid var(--line);border-radius:9px;cursor:pointer;text-align:center;font-size:12px;color:var(--muted);background:var(--bg);min-height:52px}
+.likert label b{font-family:var(--f-mono);font-size:15px;color:var(--ink);font-weight:500}
+.likert input{position:absolute;opacity:0;pointer-events:none}
+.likert label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.likert label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.anchors{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.courses{display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:var(--bg);font-weight:500}
+.chip:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.chip input{accent-color:var(--accent)}
+.err{color:var(--bajo);font-size:13px;margin:0}
+button.main{font:inherit;font-weight:600;font-size:15px;padding:13px 22px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);cursor:pointer;align-self:flex-start}
+button.ghost{font:inherit;font-size:14px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.example{font-size:13px;color:var(--medio);background:var(--medio-soft);border-radius:8px;padding:8px 12px;margin:0}
+.result{gap:22px}
+.score{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.big{font-family:var(--f-display);font-size:64px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:18px;color:var(--muted);font-weight:500}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:600;font-size:13px}
+.pill.bajo{background:var(--bajo-soft);color:var(--bajo)} .pill.medio{background:var(--medio-soft);color:var(--medio)} .pill.alto{background:var(--alto-soft);color:var(--alto)}
+.lvtext{font-size:14px;color:var(--muted);max-width:44ch;margin:6px 0 0}
+.scale{position:relative;height:12px;border-radius:6px;background:linear-gradient(to right,var(--bajo-soft) 0 35%,var(--medio-soft) 35% 65%,var(--alto-soft) 65% 100%)}
+.scale i{position:absolute;top:-4px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-50%);transition:left .25s}
+.scale-l{position:relative;height:16px;font-size:11px;color:var(--muted);font-family:var(--f-mono);margin-top:4px}.scale-l span{position:absolute;transform:translateX(-50%)}
+.blocks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.blocks{grid-template-columns:minmax(0,1fr)}.likert.wrap6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.node{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.node .t{font-size:12px;color:var(--muted);font-weight:600}
+.node .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.node .n{font-family:var(--f-display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.bar span{display:block;height:100%;transition:width .25s}
+.bar.bajo span{background:var(--bajo)} .bar.medio span{background:var(--medio)} .bar.alto span{background:var(--alto)}
+.lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+.recs{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.recs li{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.recs .src{display:block;font-size:12px;color:var(--muted)}
+.note{color:var(--muted);font-size:12px;max-width:80ch;margin:0}
+.course-panel[hidden]{display:none}
+@media (prefers-reduced-motion: reduce){.scale i,.bar span{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Desfuzzycando el Aprendizaje · encuesta anónima</div>
+    <h1>¿Cómo vas este ciclo?</h1>
+    <p class="sub">Responde sobre tus cursos y sobre ti. Al final verás tu bienestar integral estimado (de 5 a 95) y recomendaciones según tus respuestas. Nada de lo que ingreses sale de esta página.</p>
+  </header>
+
+  <form id="f" novalidate>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <p class="example" id="exnote">Las respuestas vienen llenas con un ejemplo. Cámbialas por las tuyas o pulsa “Empezar en blanco”.</p>
+
+      <section class="panel" aria-labelledby="s1">
+        <div class="phead"><span class="eyebrow">Sección 1</span><h2 id="s1">Tus cursos</h2><p>Marca los cursos de esta encuesta que llevas este ciclo. Si llevas los dos, se promedian.</p></div>
+        <div class="courses" id="courses"></div>
+        <p class="err" id="err-courses" hidden>Marca al menos un curso para continuar.</p>
+      </section>
+
+      <div id="coursePanels" style="display:flex;flex-direction:column;gap:20px"></div>
+
+      <section class="panel" aria-labelledby="s3">
+        <div class="phead"><span class="eyebrow">Sección 3</span><h2 id="s3">Sobre ti</h2><p>Estas preguntas son generales, no por curso.</p></div>
+        <div id="general" style="display:flex;flex-direction:column;gap:18px"></div>
+      </section>
+
+      <div class="actions">
+        <button type="submit" class="main" id="go">Ver mi resultado</button>
+        <button type="button" class="ghost" id="blank">Empezar en blanco</button>
+      </div>
+    </div>
+  </form>
+
+  <section class="panel result" id="res" aria-live="polite" aria-labelledby="rtitle">
+    <div class="phead"><span class="eyebrow">Resultado estimado</span><h2 id="rtitle">Tu bienestar integral</h2></div>
+    <div class="score">
+      <div class="big" id="big">–<small> / 95</small></div>
+      <div><span class="pill" id="pill">–</span><p class="lvtext" id="lvtext"></p></div>
+    </div>
+    <div><div class="scale"><i id="mark" style="left:50%"></i></div><div class="scale-l" aria-hidden="true"><span style="left:5%">5</span><span style="left:35%">35</span><span style="left:65%">65</span><span style="left:95%">95</span></div></div>
+    <div><div class="lbl">Por dimensión</div><div class="blocks" id="blocks"></div></div>
+    <div><div class="lbl">Recomendaciones</div><ul class="recs" id="recs"></ul></div>
+    <p class="note">Estimación con un sistema difuso jerárquico (Mamdani, v10: 71 reglas, sueño en 4 conjuntos según la NSF) a partir de tus respuestas autorreportadas. Orienta; no es un diagnóstico. Si algo de lo que sientes te preocupa, Bienestar Estudiantil puede ayudarte.</p>
+  </section>
+</div>
+
+<script>
+const SPEC10 = {
+ "version": "v10",
+ "output": "Bienestar integral (5 a 95, más alto es mejor)",
+ "inputs": {
+  "notas": {
+   "block": "A",
+   "unit": "0-20",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      -1,
+      0,
+      10,
+      12
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      10,
+      13,
+      16
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      14,
+      16,
+      20,
+      21
+     ]
+    ]
+   },
+   "why": "Criterio de diseño: nota aprobatoria 11 (escala vigesimal); 16+ = alto rendimiento"
+  },
+  "asistencia": {
+   "block": "A",
+   "unit": "%",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      -1,
+      0,
+      60,
+      75
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      60,
+      75,
+      90
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      75,
+      90,
+      100,
+      101
+     ]
+    ]
+   },
+   "why": "Tomal et al. 2026: umbral 73.7 %; Credé et al. 2010: asistencia es el mejor predictor"
+  },
+  "horas": {
+   "block": "A",
+   "unit": "h/sem por curso",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      -1,
+      0,
+      1,
+      3
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      1,
+      3,
+      6
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      3,
+      6,
+      10,
+      11
+     ]
+    ]
+   },
+   "why": "Horas POR CURSO; saturación sobre ~6 h (Liu 2022); las horas no deciden solas (Nonis et al. 2006)"
+  },
+  "entendimiento": {
+   "block": "C",
+   "unit": "Likert 1-5",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      0,
+      1,
+      2,
+      3
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      2,
+      3,
+      4
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      3,
+      4,
+      5,
+      6
+     ]
+    ]
+   },
+   "why": "Anclas Likert: 1-2 desacuerdo, 3 neutral, 4-5 acuerdo"
+  },
+  "interes": {
+   "block": "C",
+   "unit": "Likert 1-5",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      0,
+      1,
+      2,
+      3
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      2,
+      3,
+      4
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      3,
+      4,
+      5,
+      6
+     ]
+    ]
+   },
+   "why": "Anclas Likert; motivación intrínseca (Howard et al. 2021)"
+  },
+  "metodo": {
+   "block": "C",
+   "unit": "0/1",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      -1,
+      0,
+      0,
+      1
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      2,
+      3,
+      4
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      0,
+      1,
+      1,
+      2
+     ]
+    ]
+   },
+   "why": "Binaria: sí / no"
+  },
+  "participacion": {
+   "block": "Co",
+   "unit": "Likert 1-5",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      0,
+      1,
+      2,
+      3
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      2,
+      3,
+      4
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      3,
+      4,
+      5,
+      6
+     ]
+    ]
+   },
+   "why": "Frecuencia 1-5; compromiso conductual (Lei et al. 2018)"
+  },
+  "amonestaciones": {
+   "block": "Co",
+   "unit": "número",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      1,
+      2,
+      5,
+      6
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      0,
+      1,
+      2
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      -1,
+      0,
+      0,
+      1
+     ]
+    ]
+   },
+   "why": "alto = ninguna. Sin evidencia sólida: peso bajo (solo una regla de penalización)"
+  },
+  "sueno": {
+   "block": "Co",
+   "unit": "h/noche",
+   "sets": {
+    "insuficiente": [
+     [
+      "trap",
+      -1,
+      0,
+      5,
+      6
+     ]
+    ],
+    "limitrofe": [
+     [
+      "tri",
+      5,
+      6,
+      7.5
+     ]
+    ],
+    "adecuado": [
+     [
+      "trap",
+      6.5,
+      7.5,
+      9,
+      10
+     ]
+    ],
+    "excesivo": [
+     [
+      "trap",
+      9,
+      10,
+      12,
+      13
+     ]
+    ]
+   },
+   "why": "Categorías de la NSF (Hirshkowitz et al. 2015): 7-9 h recomendado; 6 h y 10-11 h 'pueden ser apropiadas'; <6 h dañino (Creswell et al. 2023); ≥10 h más riesgo (Vedaa et al. 2019)"
+  },
+  "emocion": {
+   "block": "Co",
+   "unit": "Likert 1-5 (promedio)",
+   "sets": {
+    "bajo": [
+     [
+      "trap",
+      0,
+      1,
+      2,
+      3
+     ]
+    ],
+    "medio": [
+     [
+      "tri",
+      2,
+      3,
+      4
+     ]
+    ],
+    "alto": [
+     [
+      "trap",
+      3,
+      4,
+      5,
+      6
+     ]
+    ]
+   },
+   "why": "Promedio de E1 invertida, E2, E3; depresión y estrés bajan rendimiento (Awadalla et al. 2020, 2024)"
+  }
+ },
+ "block_mf": {
+  "bajo": [
+   [
+    "trap",
+    -1,
+    0,
+    40,
+    60
+   ]
+  ],
+  "medio": [
+   [
+    "tri",
+    20,
+    50,
+    80
+   ]
+  ],
+  "alto": [
+   [
+    "trap",
+    40,
+    60,
+    100,
+    101
+   ]
+  ]
+ },
+ "out_mf": {
+  "bajo": [
+   [
+    "tri",
+    -1,
+    0,
+    15
+   ]
+  ],
+  "medio": [
+   [
+    "tri",
+    35,
+    50,
+    65
+   ]
+  ],
+  "alto": [
+   [
+    "tri",
+    85,
+    100,
+    101
+   ]
+  ]
+ },
+ "rules": {
+  "A": [
+   {
+    "id": "A1",
+    "if": {
+     "notas": "bajo",
+     "asistencia": "bajo"
+    },
+    "then": "bajo",
+    "why": "Credé 2010: nota y asistencia bajas",
+    "status": "cambia"
+   },
+   {
+    "id": "A2",
+    "if": {
+     "notas": "bajo",
+     "asistencia": "medio"
+    },
+    "then": "bajo",
+    "why": "Nota bajo el aprobatorio domina",
+    "status": "nueva"
+   },
+   {
+    "id": "A4",
+    "if": {
+     "notas": "medio",
+     "asistencia": "bajo"
+    },
+    "then": "bajo",
+    "why": "Tomal 2026: bajo el umbral de asistencia la nota no se sostiene",
+    "status": "nueva"
+   },
+   {
+    "id": "A5",
+    "if": {
+     "notas": "medio",
+     "asistencia": "medio"
+    },
+    "then": "medio",
+    "why": "Todo medio → medio",
+    "status": "cambia"
+   },
+   {
+    "id": "A6",
+    "if": {
+     "notas": "medio",
+     "asistencia": "alto"
+    },
+    "then": "medio",
+    "why": "Criterio de diseño",
+    "status": "nueva"
+   },
+   {
+    "id": "A8",
+    "if": {
+     "notas": "alto",
+     "asistencia": "medio"
+    },
+    "then": "alto",
+    "why": "Nota alta con asistencia aceptable",
+    "status": "cambia"
+   },
+   {
+    "id": "A9",
+    "if": {
+     "notas": "alto",
+     "asistencia": "alto"
+    },
+    "then": "alto",
+    "why": "Nonis 2006: las horas no tienen efecto directo; nota y asistencia bastan",
+    "status": "cambia"
+   },
+   {
+    "id": "A10",
+    "if": {
+     "notas": "bajo",
+     "horas": "alto"
+    },
+    "then": "medio",
+    "why": "P2 Tsai 2023: el esfuerzo compensa (v8 A6)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "A11",
+    "if": {
+     "asistencia": "bajo",
+     "horas": "bajo"
+    },
+    "then": "bajo",
+    "why": "Wei 2024 (v8 A7)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "A12",
+    "if": {
+     "notas": "medio",
+     "asistencia": "alto",
+     "horas": "alto"
+    },
+    "then": "alto",
+    "why": "Esfuerzo sostenido + asistencia (Brint 2010)",
+    "status": "nueva"
+   },
+   {
+    "id": "A13",
+    "if": {
+     "notas": "medio",
+     "horas": "alto"
+    },
+    "then": "medio",
+    "why": "Monotonía: la compensación por esfuerzo de A10 sigue con nota media",
+    "status": "nueva"
+   },
+   {
+    "id": "A3",
+    "if": {
+     "notas": "bajo",
+     "asistencia": "alto",
+     "horas": "medio"
+    },
+    "then": "medio",
+    "why": "Refina A3 v9: asiste y estudia algo, hay base para recuperar (Wei 2024)",
+    "status": "cambia"
+   },
+   {
+    "id": "A15",
+    "if": {
+     "notas": "bajo",
+     "asistencia": "alto",
+     "horas": "bajo"
+    },
+    "then": "bajo",
+    "why": "Wei et al. 2024: asistir ayuda a quien rinde bajo, pero no compensa si no estudia",
+    "status": "nueva"
+   },
+   {
+    "id": "A7",
+    "if": {
+     "notas": "alto",
+     "asistencia": "bajo",
+     "horas": "bajo"
+    },
+    "then": "medio",
+    "why": "Refina A7 v9: rinde pese a faltar, alerta moderada",
+    "status": "cambia"
+   },
+   {
+    "id": "A7b",
+    "if": {
+     "notas": "alto",
+     "asistencia": "bajo",
+     "horas": "medio"
+    },
+    "then": "medio",
+    "why": "Refina A7 v9",
+    "status": "cambia"
+   },
+   {
+    "id": "A14",
+    "if": {
+     "notas": "alto",
+     "asistencia": "bajo",
+     "horas": "alto"
+    },
+    "then": "alto",
+    "why": "Lukkarinen et al. 2016: estudiantes que estudian por su cuenta y rinden bien",
+    "status": "nueva"
+   }
+  ],
+  "C": [
+   {
+    "id": "C1",
+    "if": {
+     "entendimiento": "bajo",
+     "interes": "bajo"
+    },
+    "then": "bajo",
+    "why": "P1 López 2024 (v8 C1, sin exigir método)",
+    "status": "cambia"
+   },
+   {
+    "id": "C2",
+    "if": {
+     "entendimiento": "bajo",
+     "interes": "medio"
+    },
+    "then": "bajo",
+    "why": "Entender es la base del bloque",
+    "status": "nueva"
+   },
+   {
+    "id": "C3",
+    "if": {
+     "entendimiento": "bajo",
+     "interes": "alto",
+     "metodo": "alto"
+    },
+    "then": "medio",
+    "why": "v8 C5: interés + método compensan",
+    "status": "se mantiene"
+   },
+   {
+    "id": "C4",
+    "if": {
+     "entendimiento": "bajo",
+     "interes": "alto",
+     "metodo": "bajo"
+    },
+    "then": "bajo",
+    "why": "v8 C6: sin método no alcanza",
+    "status": "se mantiene"
+   },
+   {
+    "id": "C8",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "alto",
+     "metodo": "alto"
+    },
+    "then": "alto",
+    "why": "Theobald 2021: planificar y fijar metas (g = 0.55)",
+    "status": "nueva"
+   },
+   {
+    "id": "C11",
+    "if": {
+     "entendimiento": "alto",
+     "interes": "alto"
+    },
+    "then": "alto",
+    "why": "Motivación intrínseca + autoeficacia (Taylor 2014; Meng 2023); el método ya no es requisito",
+    "status": "cambia"
+   },
+   {
+    "id": "C5",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "bajo",
+     "metodo": "bajo"
+    },
+    "then": "bajo",
+    "why": "Refina C5 v9 (sin método): desmotivación (Howard 2021)",
+    "status": "cambia"
+   },
+   {
+    "id": "C16",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "bajo",
+     "metodo": "alto"
+    },
+    "then": "medio",
+    "why": "Theobald 2021: el método sostiene el rendimiento con poca motivación (igual que C13)",
+    "status": "nueva"
+   },
+   {
+    "id": "C7",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "alto",
+     "metodo": "bajo"
+    },
+    "then": "medio",
+    "why": "Refina C7 v9 (sin método); con método aplica C8",
+    "status": "cambia"
+   },
+   {
+    "id": "C10",
+    "if": {
+     "entendimiento": "alto",
+     "interes": "medio",
+     "metodo": "bajo"
+    },
+    "then": "medio",
+    "why": "Refina C10 v9 (sin método)",
+    "status": "cambia"
+   },
+   {
+    "id": "C15",
+    "if": {
+     "entendimiento": "alto",
+     "interes": "medio",
+     "metodo": "alto"
+    },
+    "then": "alto",
+    "why": "Monotonía con C14: con método, entender más no puede bajar el bloque (Theobald 2021)",
+    "status": "nueva"
+   },
+   {
+    "id": "C6",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "medio",
+     "metodo": "bajo"
+    },
+    "then": "medio",
+    "why": "Refina C6 v9 (sin método)",
+    "status": "cambia"
+   },
+   {
+    "id": "C14",
+    "if": {
+     "entendimiento": "medio",
+     "interes": "medio",
+     "metodo": "alto"
+    },
+    "then": "alto",
+    "why": "Theobald 2021: planificar y fijar metas tiene el mayor efecto (g = 0.55)",
+    "status": "nueva"
+   },
+   {
+    "id": "C12",
+    "if": {
+     "entendimiento": "alto",
+     "interes": "bajo",
+     "metodo": "bajo"
+    },
+    "then": "bajo",
+    "why": "Howard et al. 2021; Taylor et al. 2014: la desmotivación se asocia con malos resultados",
+    "status": "nueva"
+   },
+   {
+    "id": "C13",
+    "if": {
+     "entendimiento": "alto",
+     "interes": "bajo",
+     "metodo": "alto"
+    },
+    "then": "medio",
+    "why": "Theobald 2021: el método sostiene el rendimiento con poca motivación",
+    "status": "nueva"
+   }
+  ],
+  "Co": [
+   {
+    "id": "Co1",
+    "if": {
+     "sueno": "insuficiente",
+     "emocion": "bajo"
+    },
+    "then": "bajo",
+    "why": "Kuhn 2025; P4/P5",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co2",
+    "if": {
+     "sueno": "limitrofe",
+     "emocion": "bajo"
+    },
+    "then": "bajo",
+    "why": "Awadalla 2020: el ánimo bajo pesa más que el sueño",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co3",
+    "if": {
+     "sueno": "adecuado",
+     "emocion": "bajo"
+    },
+    "then": "bajo",
+    "why": "Seguridad emocional: con ánimo bajo el conductual no puede salir bien (Awadalla 2020; Sinval 2024); v9 daba medio",
+    "status": "cambia"
+   },
+   {
+    "id": "Co15",
+    "if": {
+     "sueno": "excesivo",
+     "emocion": "bajo"
+    },
+    "then": "bajo",
+    "why": "Vedaa 2019: ≥10 h aumenta el riesgo; con ánimo bajo es señal de alerta",
+    "status": "nueva"
+   },
+   {
+    "id": "Co4",
+    "if": {
+     "sueno": "insuficiente",
+     "emocion": "medio"
+    },
+    "then": "bajo",
+    "why": "Creswell et al. 2023: por debajo de 6 h el sueño pasa a ser dañino; Vedaa et al. 2019",
+    "status": "cambia"
+   },
+   {
+    "id": "Co5",
+    "if": {
+     "sueno": "limitrofe",
+     "emocion": "medio"
+    },
+    "then": "medio",
+    "why": "Criterio de diseño",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co6",
+    "if": {
+     "sueno": "adecuado",
+     "emocion": "medio"
+    },
+    "then": "alto",
+    "why": "Kuhn et al. 2025: sueño y salud mental juntos predicen el bienestar; Pernice et al. 2025: dormir mejor baja el estrés",
+    "status": "cambia"
+   },
+   {
+    "id": "Co16",
+    "if": {
+     "sueno": "excesivo",
+     "emocion": "medio"
+    },
+    "then": "medio",
+    "why": "Completitud: sueño excesivo (Vedaa 2019)",
+    "status": "nueva"
+   },
+   {
+    "id": "Co7",
+    "if": {
+     "sueno": "insuficiente",
+     "emocion": "alto"
+    },
+    "then": "medio",
+    "why": "v8 Co8 sin exigir participación",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co8",
+    "if": {
+     "sueno": "limitrofe",
+     "emocion": "alto"
+    },
+    "then": "alto",
+    "why": "P5 Qu 2023; 6 h 'puede ser apropiado' (NSF)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co9",
+    "if": {
+     "sueno": "adecuado",
+     "emocion": "alto"
+    },
+    "then": "alto",
+    "why": "Kuhn 2025",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co17",
+    "if": {
+     "sueno": "excesivo",
+     "emocion": "alto"
+    },
+    "then": "medio",
+    "why": "Vedaa 2019: ≥10 h aumenta el riesgo aun con buen ánimo",
+    "status": "nueva"
+   },
+   {
+    "id": "Co10",
+    "if": {
+     "participacion": "alto",
+     "emocion": "medio",
+     "sueno": "adecuado"
+    },
+    "then": "alto",
+    "why": "Compromiso conductual (Lei 2018)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co13",
+    "if": {
+     "participacion": "alto",
+     "emocion": "alto"
+    },
+    "then": "alto",
+    "why": "Lei et al. 2018: compromiso conductual + emocional predicen el logro",
+    "status": "nueva"
+   },
+   {
+    "id": "Co11",
+    "if": {
+     "emocion": "bajo",
+     "participacion": "bajo"
+    },
+    "then": "bajo",
+    "why": "v8 Co7",
+    "status": "se mantiene"
+   },
+   {
+    "id": "Co12",
+    "if": {
+     "amonestaciones": "bajo",
+     "participacion": "bajo"
+    },
+    "then": "bajo",
+    "why": "v8 Co5 (penalización)",
+    "status": "se mantiene"
+   }
+  ],
+  "I": [
+   {
+    "id": "I1",
+    "if": {
+     "A": "bajo",
+     "C": "bajo",
+     "Co": "bajo"
+    },
+    "then": "bajo",
+    "why": "P6 Nnamoko 2025 (v8 I1)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I2",
+    "if": {
+     "A": "medio",
+     "C": "medio",
+     "Co": "medio"
+    },
+    "then": "medio",
+    "why": "v8 I2",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I3",
+    "if": {
+     "A": "alto",
+     "C": "alto",
+     "Co": "alto"
+    },
+    "then": "alto",
+    "why": "v8 I3",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I4",
+    "if": {
+     "A": "bajo",
+     "C": "bajo"
+    },
+    "then": "bajo",
+    "why": "v8 I4",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I5",
+    "if": {
+     "A": "bajo",
+     "Co": "bajo"
+    },
+    "then": "bajo",
+    "why": "v8 I5",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I6",
+    "if": {
+     "A": "bajo",
+     "C": "alto"
+    },
+    "then": "medio",
+    "why": "v8 I6",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I7",
+    "if": {
+     "A": "alto",
+     "Co": "bajo"
+    },
+    "then": "medio",
+    "why": "Benítez-Agudelo 2025: buenas notas con bienestar bajo (v8 I7)",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I8",
+    "if": {
+     "A": "medio",
+     "C": "bajo",
+     "Co": "medio"
+    },
+    "then": "medio",
+    "why": "v8 I8",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I9",
+    "if": {
+     "A": "alto",
+     "C": "medio",
+     "Co": "alto"
+    },
+    "then": "alto",
+    "why": "v8 I9",
+    "status": "se mantiene"
+   },
+   {
+    "id": "I10",
+    "if": {
+     "A": "alto",
+     "C": "alto",
+     "Co": "medio"
+    },
+    "then": "alto",
+    "why": "Dos bloques altos y ninguno bajo (regla de excepción, Trillo 2020)",
+    "status": "nueva"
+   },
+   {
+    "id": "I11",
+    "if": {
+     "A": "medio",
+     "C": "alto",
+     "Co": "alto"
+    },
+    "then": "alto",
+    "why": "Ídem",
+    "status": "nueva"
+   },
+   {
+    "id": "I12",
+    "if": {
+     "C": "bajo",
+     "Co": "bajo"
+    },
+    "then": "bajo",
+    "why": "Sinval 2024: malestar + bajo compromiso → abandono",
+    "status": "nueva"
+   },
+   {
+    "id": "I13",
+    "if": {
+     "A": "medio",
+     "C": "medio",
+     "Co": "bajo"
+    },
+    "then": "bajo",
+    "why": "Conductual bajo sin un bloque alto que compense",
+    "status": "nueva"
+   },
+   {
+    "id": "I22",
+    "if": {
+     "A": "medio",
+     "C": "alto",
+     "Co": "bajo"
+    },
+    "then": "medio",
+    "why": "Monotonía: espejo de I6 (el cognitivo alto compensa)",
+    "status": "nueva"
+   },
+   {
+    "id": "I14",
+    "if": {
+     "A": "alto",
+     "C": "medio",
+     "Co": "medio"
+    },
+    "then": "medio",
+    "why": "Criterio de diseño",
+    "status": "nueva"
+   },
+   {
+    "id": "I15",
+    "if": {
+     "A": "medio",
+     "C": "medio",
+     "Co": "alto"
+    },
+    "then": "medio",
+    "why": "Criterio de diseño",
+    "status": "nueva"
+   },
+   {
+    "id": "I16",
+    "if": {
+     "A": "medio",
+     "C": "alto",
+     "Co": "medio"
+    },
+    "then": "medio",
+    "why": "Criterio de diseño",
+    "status": "nueva"
+   },
+   {
+    "id": "I17",
+    "if": {
+     "A": "bajo",
+     "C": "medio",
+     "Co": "medio"
+    },
+    "then": "bajo",
+    "why": "Completitud: académico bajo sin un bloque alto que compense",
+    "status": "nueva"
+   },
+   {
+    "id": "I18",
+    "if": {
+     "A": "bajo",
+     "C": "medio",
+     "Co": "alto"
+    },
+    "then": "medio",
+    "why": "Completitud: el conductual alto compensa",
+    "status": "nueva"
+   },
+   {
+    "id": "I19",
+    "if": {
+     "A": "medio",
+     "C": "bajo",
+     "Co": "alto"
+    },
+    "then": "medio",
+    "why": "Completitud",
+    "status": "nueva"
+   },
+   {
+    "id": "I20",
+    "if": {
+     "A": "alto",
+     "C": "bajo",
+     "Co": "medio"
+    },
+    "then": "medio",
+    "why": "Completitud: buenas notas con bajo interés o entendimiento",
+    "status": "nueva"
+   },
+   {
+    "id": "I21",
+    "if": {
+     "A": "alto",
+     "C": "bajo",
+     "Co": "alto"
+    },
+    "then": "medio",
+    "why": "Completitud: el cognitivo bajo se señala aunque lo demás vaya bien",
+    "status": "nueva"
+   },
+   {
+    "id": "I23",
+    "if": {
+     "A": "alto",
+     "C": "alto",
+     "Co": "bajo"
+    },
+    "then": "medio",
+    "why": "Benítez-Agudelo 2025: buenas notas con bienestar bajo (explícita)",
+    "status": "nueva"
+   },
+   {
+    "id": "I24",
+    "if": {
+     "A": "bajo",
+     "C": "alto",
+     "Co": "alto"
+    },
+    "then": "medio",
+    "why": "Sinval 2024: el compromiso protege del abandono (explícita)",
+    "status": "nueva"
+   }
+  ]
+ },
+ "recommendations": [
+  {
+   "id": "rec_cond",
+   "when": "D_A alto (≥65) y D_Co bajo (<35)",
+   "msg": "Académicamente vas bien, pero tu descanso y tu ánimo están bajos. No los descuides: también cuentan.",
+   "src": "Benítez-Agudelo et al. 2025"
+  },
+  {
+   "id": "rec_sueno_bajo",
+   "when": "sueño < 6 h",
+   "msg": "Duermes menos de 6 horas. Apunta a 7–9 horas con un horario regular y sin pantallas antes de dormir.",
+   "src": "Hirshkowitz et al. 2015; Creswell et al. 2023; Hershner et al. 2018"
+  },
+  {
+   "id": "rec_sueno_alto",
+   "when": "sueño ≥ 10 h",
+   "msg": "Duermes 10 horas o más. Si aun así te sientes cansado, consúltalo en Bienestar.",
+   "src": "Vedaa et al. 2019"
+  },
+  {
+   "id": "rec_emo",
+   "when": "emoción ≤ 2.5",
+   "msg": "En las últimas semanas te has sentido agobiado. Bienestar Estudiantil ofrece apoyo; los programas de manejo del estrés y de mindfulness ayudan.",
+   "src": "Regehr et al. 2013; Muriago et al. 2026"
+  },
+  {
+   "id": "rec_asis",
+   "when": "asistencia < 75 %",
+   "msg": "Tu asistencia está por debajo del 75 %. Por encima de ese nivel la asistencia se nota en la nota.",
+   "src": "Credé et al. 2010; Tomal et al. 2026"
+  },
+  {
+   "id": "rec_horas_nota",
+   "when": "horas ≥ 5 y nota < 12",
+   "msg": "Dedicas bastante tiempo, pero no se refleja en tu nota. Prueba planificar, practicar con ejercicios y repasar en vez de solo releer.",
+   "src": "Theobald 2024; Theobald 2021"
+  },
+  {
+   "id": "rec_metodo",
+   "when": "sin método",
+   "msg": "Arma un horario semanal y fija metas concretas por curso: es la estrategia con más efecto.",
+   "src": "Theobald 2021; Broadbent et al. 2015"
+  },
+  {
+   "id": "rec_metodo_casi",
+   "when": "los tres bloques medios y D_C ≥ 55",
+   "msg": "Estás cerca de un buen nivel: un método de estudio (horario, metas por curso) es lo que más suele sumar.",
+   "src": "Theobald 2021"
+  },
+  {
+   "id": "rec_ent",
+   "when": "entendimiento ≤ 2.5",
+   "msg": "Si te cuesta entender los temas, busca tutoría o un grupo de estudio con compañeros de ciclos superiores.",
+   "src": "Zhang et al. 2024; Arco-Tirado et al. 2020"
+  },
+  {
+   "id": "rec_int",
+   "when": "interés ≤ 2.5",
+   "msg": "Conecta el curso con lo que quieres hacer después; si no encuentras el para qué, conversalo con tu tutor.",
+   "src": "Howard et al. 2021; Taylor et al. 2014"
+  },
+  {
+   "id": "rec_part",
+   "when": "participación ≤ 2",
+   "msg": "Intenta una pregunta o comentario por clase: participar se asocia con aprender más.",
+   "src": "Lei et al. 2018"
+  },
+  {
+   "id": "rec_alerta",
+   "when": "bienestar < 35",
+   "msg": "Alerta interna para tutoría (no se muestra al estudiante): ofrecer mentoría.",
+   "src": "Alonso García et al. 2024; Sinval et al. 2024"
+  },
+  {
+   "id": "rec_ok",
+   "when": "bienestar ≥ 65 y ninguna otra",
+   "msg": "Vas muy bien en las tres dimensiones. Sigue así.",
+   "src": "—"
+  }
+ ],
+ "levels": {
+  "bajo": [
+   0,
+   35
+  ],
+  "medio": [
+   35,
+   65
+  ],
+  "alto": [
+   65,
+   100
+  ]
+ }
+};
+// Motor Mamdani jerárquico (mismo algoritmo que fis.py / fis_jerarquico.m, especificación v10)
+const FIS = (() => {
+  const Y = Array.from({length: 1001}, (_, i) => Math.round(i) / 10);
+  const shape = (x, s) => {
+    if (s[0] === 'trap') { const [, a, b, c, d] = s;
+      if (x <= a || x >= d) return 0; if (x >= b && x <= c) return 1;
+      return x < b ? (x - a) / (b - a) : (d - x) / (d - c); }
+    const [, a, b, c] = s;
+    if (x <= a || x >= c) return 0; return x < b ? (x - a) / (b - a) : (c - x) / (c - b);
+  };
+  const mu = (x, shapes) => Math.max(...shapes.map(s => shape(x, s)));
+  const fuzz = (x, sets) => Object.fromEntries(Object.entries(sets).map(([l, shp]) => [l, mu(x, shp)]));
+  const curveCache = new Map();
+  const curve = (shapes) => { const k = JSON.stringify(shapes);
+    if (!curveCache.has(k)) curveCache.set(k, Y.map(y => mu(y, shapes))); return curveCache.get(k); };
+  function infer(M, rules, outMf) {
+    const agg = new Array(Y.length).fill(0); const acts = [];
+    for (const r of rules) {
+      let a = 1; for (const [v, l] of Object.entries(r.if)) a = Math.min(a, M[v][l]);
+      acts.push({id: r.id, a, then: r.then, why: r.why || '', cond: r.if});
+      if (a > 0) { const c = curve(outMf[r.then]); for (let i = 0; i < Y.length; i++) agg[i] = Math.max(agg[i], Math.min(a, c[i])); }
+    }
+    let s = 0, m = 0; for (let i = 0; i < Y.length; i++) { s += agg[i]; m += Y[i] * agg[i]; }
+    return {z: s > 0 ? m / s : 50, acts, fired: s > 0};
+  }
+  function run(x, spec) {
+    const M = {}; for (const v in spec.inputs) M[v] = fuzz(x[v], spec.inputs[v].sets);
+    const out = {M, acts: {}, fired: {}};
+    for (const b of ['A', 'C', 'Co']) { const r = infer(M, spec.rules[b], spec.out_mf); out[b] = r.z; out.acts[b] = r.acts; out.fired[b] = r.fired; }
+    const MB = {A: fuzz(out.A, spec.block_mf), C: fuzz(out.C, spec.block_mf), Co: fuzz(out.Co, spec.block_mf)};
+    const r = infer(MB, spec.rules.I, spec.out_mf); out.I = r.z; out.acts.I = r.acts; out.fired.I = r.fired;
+    return out;
+  }
+  function v8norm(x) { const lk = v => (v - 1) / 4 * 100;
+    return {notas: x.notas / 20 * 100, asistencia: x.asistencia, horas: Math.min(x.horas, 10) / 10 * 100,
+      entendimiento: lk(x.entendimiento), interes: lk(x.interes), metodo: x.metodo * 100, participacion: lk(x.participacion),
+      amonestaciones: (1 - Math.min(x.amonestaciones, 5) / 5) * 100, sueno: Math.max(0, Math.min(100, (x.sueno - 4) / 6 * 100)),
+      emocion: lk(x.emocion)}; }
+  return {run, fuzz, mu, v8norm};
+})();
+const COURSES = [{k:'fis', n:'Física'}, {k:'est', n:'Estrategia'}];
+const AGREE = ['Muy en desacuerdo','En desacuerdo','Neutral','De acuerdo','Muy de acuerdo'];
+const FREQ = ['Nunca','Casi nunca','A veces','Casi siempre','Siempre'];
+const PER_COURSE = [
+  {k:'notas', t:'num', q:'¿Cuál es tu nota promedio actual en el curso?', unit:'sobre 20', min:0, max:20, step:0.5},
+  {k:'asistencia', t:'num', q:'¿Qué porcentaje de clases has asistido?', unit:'%', min:0, max:100, step:1},
+  {k:'horas', t:'num', q:'¿Cuántas horas a la semana estudias para este curso fuera de clase?', unit:'horas por semana', min:0, max:40, step:0.5},
+  {k:'entendimiento', t:'lik', q:'Entiendo los temas que se ven en el curso.', a:AGREE},
+  {k:'interes', t:'lik', q:'El curso me interesa.', a:AGREE},
+  {k:'participacion', t:'lik', q:'¿Con qué frecuencia participas en clase (preguntas, comentarios)?', a:FREQ},
+];
+const GENERAL = [
+  {k:'metodo', t:'yn', q:'¿Tienes un método de estudio (un horario semanal o metas concretas por curso)?'},
+  {k:'amonestaciones', t:'amon', q:'¿Cuántas amonestaciones formales has recibido este ciclo?'},
+  {k:'sueno', t:'num', q:'En promedio, ¿cuántas horas duermes por noche?', unit:'horas', min:0, max:14, step:0.5},
+  {k:'E1', t:'lik', q:'En las últimas dos semanas me he sentido agobiado o estresado.', a:AGREE},
+  {k:'E2', t:'lik', q:'En las últimas dos semanas me he sentido con ánimo y energía.', a:AGREE},
+  {k:'E3', t:'lik', q:'Me siento capaz de manejar mis responsabilidades.', a:AGREE},
+];
+const EXAMPLE = {
+  courses:['fis','est'],
+  fis:{notas:17, asistencia:95, horas:6, entendimiento:4, interes:4, participacion:3},
+  est:{notas:16, asistencia:90, horas:5, entendimiento:4, interes:5, participacion:3},
+  g:{metodo:1, amonestaciones:0, sueno:5, E1:4, E2:2, E3:2},
+};
+
+function likert(id, a, n) {
+  return `<div class="likert${n===6?' wrap6':''}" role="radiogroup">` + a.map((txt, i) =>
+    `<label><input type="radio" name="${id}" id="${id}-${i}" value="${i+1}"><b>${i+1}</b>${txt}</label>`).join('') + `</div>`;
+}
+function question(id, d) {
+  if (d.t === 'num') return `<div class="q"><label for="${id}">${d.q}</label><div class="num"><input type="number" inputmode="decimal" id="${id}" min="${d.min}" max="${d.max}" step="${d.step}"><span>${d.unit}</span></div></div>`;
+  if (d.t === 'lik') return `<fieldset class="q"><legend>${d.q}</legend>${likert(id, d.a)}</fieldset>`;
+  if (d.t === 'yn') return `<fieldset class="q"><legend>${d.q}</legend><div class="likert two" role="radiogroup">
+    <label><input type="radio" name="${id}" id="${id}-1" value="1"><b>Sí</b></label><label><input type="radio" name="${id}" id="${id}-0" value="0"><b>No</b></label></div></fieldset>`;
+  if (d.t === 'amon') return `<fieldset class="q"><legend>${d.q}</legend><div class="likert wrap6" role="radiogroup">` +
+    [0,1,2,3,4,5].map(v => `<label><input type="radio" name="${id}" id="${id}-${v}" value="${v}"><b>${v===5?'5+':v}</b></label>`).join('') + `</div></fieldset>`;
+}
+
+document.getElementById('courses').innerHTML = COURSES.map(c =>
+  `<label class="chip"><input type="checkbox" id="c-${c.k}" value="${c.k}">${c.n}</label>`).join('');
+document.getElementById('coursePanels').innerHTML = COURSES.map(c =>
+  `<section class="panel course-panel" id="p-${c.k}" aria-labelledby="h-${c.k}">
+    <div class="phead"><span class="eyebrow">Sección 2 · ${c.n}</span><h2 id="h-${c.k}">Sobre el curso de ${c.n}</h2></div>
+    <div style="display:flex;flex-direction:column;gap:18px">${PER_COURSE.map(d => question(`${c.k}-${d.k}`, d)).join('')}</div>
+  </section>`).join('');
+document.getElementById('general').innerHTML = GENERAL.map(d => question(`g-${d.k}`, d)).join('');
+
+const $ = id => document.getElementById(id);
+function setVal(id, d, v) {
+  if (d.t === 'num') { $(id).value = v ?? ''; return; }
+  document.querySelectorAll(`input[name="${id}"]`).forEach(r => r.checked = (v != null && +r.value === +v));
+}
+function getVal(id, d) {
+  if (d.t === 'num') { const s = $(id).value.trim(); if (s === '') return null; const n = +s; return isFinite(n) ? n : null; }
+  const r = document.querySelector(`input[name="${id}"]:checked`); return r ? +r.value : null;
+}
+function fill(ex) {
+  COURSES.forEach(c => { $(`c-${c.k}`).checked = ex ? ex.courses.includes(c.k) : false;
+    PER_COURSE.forEach(d => setVal(`${c.k}-${d.k}`, d, ex ? ex[c.k][d.k] : null)); });
+  GENERAL.forEach(d => setVal(`g-${d.k}`, d, ex ? ex.g[d.k] : null));
+  syncCourses();
+}
+function syncCourses() { COURSES.forEach(c => $(`p-${c.k}`).hidden = !$(`c-${c.k}`).checked); }
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Lee el formulario y lo lleva a las unidades del modelo (cursos promediados, emoción = promedio de E1 invertida, E2, E3)
+function collect() {
+  const sel = COURSES.filter(c => $(`c-${c.k}`).checked);
+  const missing = [];
+  if (!sel.length) return {error:'courses'};
+  const x = {};
+  for (const d of PER_COURSE) {
+    const vals = sel.map(c => { const v = getVal(`${c.k}-${d.k}`, d); if (v == null) missing.push(`${c.n}: ${d.q}`); return v; });
+    if (vals.every(v => v != null)) x[d.k] = vals.reduce((s, v) => s + v, 0) / vals.length;
+  }
+  const g = {};
+  for (const d of GENERAL) { const v = getVal(`g-${d.k}`, d); if (v == null) missing.push(d.q); g[d.k] = v; }
+  if (missing.length) return {missing};
+  x.notas = clamp(x.notas, 0, 20); x.asistencia = clamp(x.asistencia, 0, 100); x.horas = clamp(x.horas, 0, 10);
+  x.metodo = g.metodo; x.amonestaciones = clamp(g.amonestaciones, 0, 5); x.sueno = clamp(g.sueno, 0, 13);
+  x.emocion = ((6 - g.E1) + g.E2 + g.E3) / 3;
+  return {x};
+}
+
+const BLOCKS = {A:'Académico', C:'Cognitivo', Co:'Conductual'};
+const BLOCK_HINT = {A:'notas, asistencia, horas', C:'entendimiento, interés, método', Co:'sueño, ánimo, participación'};
+const level = b => b < 35 ? 'bajo' : (b < 65 ? 'medio' : 'alto');
+const LABEL = {bajo:'Bajo', medio:'Medio', alto:'Alto'};
+const LVTEXT = {
+  bajo:'Varias áreas necesitan atención. Las recomendaciones de abajo son un buen punto de partida.',
+  medio:'Vas razonablemente, con algunas áreas por reforzar.',
+  alto:'Vas bien en general. Mantén lo que te está funcionando.',
+};
+
+function recommendations(x, r, B) {
+  const out = []; const add = (msg, src) => out.push({msg, src});
+  if (r.A >= 65 && r.Co < 35) add('Académicamente vas bien, pero tu descanso y tu ánimo están bajos. No los descuides: también cuentan.', 'Benítez-Agudelo et al. 2025');
+  if (x.sueno < 6) add('Duermes menos de 6 horas. Apunta a 7–9 horas con un horario regular y sin pantallas antes de dormir.', 'Hirshkowitz et al. 2015; Creswell et al. 2023; Hershner et al. 2018');
+  if (x.sueno >= 10) add('Duermes 10 horas o más. Si aun así te sientes cansado, consúltalo en Bienestar.', 'Vedaa et al. 2019');
+  if (x.emocion <= 2.5) add('En las últimas semanas te has sentido agobiado. Bienestar Estudiantil ofrece apoyo; los programas de manejo del estrés y de mindfulness ayudan.', 'Regehr et al. 2013; Muriago et al. 2026');
+  if (x.asistencia < 75) add('Tu asistencia está por debajo del 75 %. Por encima de ese nivel la asistencia se nota en la nota.', 'Credé et al. 2010; Tomal et al. 2026');
+  if (x.horas >= 5 && x.notas < 12) add('Dedicas bastante tiempo, pero no se refleja en tu nota. Prueba planificar, practicar con ejercicios y repasar en vez de solo releer.', 'Theobald 2024; Theobald 2021');
+  if (x.metodo < 0.5) add('Arma un horario semanal y fija metas concretas por curso: es la estrategia con más efecto.', 'Theobald 2021; Broadbent et al. 2015');
+  if ([r.A, r.C, r.Co].every(v => v >= 35 && v < 65) && r.C >= 55) add('Estás cerca de un buen nivel: un método de estudio (horario, metas por curso) es lo que más suele sumar.', 'Theobald 2021');
+  if (x.entendimiento <= 2.5) add('Si te cuesta entender los temas, busca tutoría o un grupo de estudio con compañeros de ciclos superiores.', 'Zhang et al. 2024; Arco-Tirado et al. 2020');
+  if (x.interes <= 2.5) add('Conecta el curso con lo que quieres hacer después; si no encuentras el para qué, conversalo con tu tutor.', 'Howard et al. 2021; Taylor et al. 2014');
+  if (x.participacion <= 2) add('Intenta una pregunta o comentario por clase: participar se asocia con aprender más.', 'Lei et al. 2018');
+  if (!out.length && B >= 65) add('Vas muy bien en las tres dimensiones. Sigue así.', '');
+  if (!out.length) add('No hay una señal puntual que corregir. Revisa la dimensión más baja de arriba para ver dónde reforzar.', '');
+  return out;
+}
+
+function render() {
+  const res = collect();
+  $('err-courses').hidden = res.error !== 'courses';
+  if (!res.x) {
+    $('big').innerHTML = '–<small> / 95</small>'; $('pill').className = 'pill'; $('pill').textContent = 'Faltan respuestas';
+    $('lvtext').textContent = res.error === 'courses' ? 'Marca al menos un curso en la sección 1.' :
+      `Te faltan ${res.missing.length} respuesta${res.missing.length>1?'s':''}. Primera pendiente: “${res.missing[0]}”`;
+    $('blocks').innerHTML = ''; $('recs').innerHTML = ''; $('mark').style.left = '50%';
+    return false;
+  }
+  const x = res.x; const r = FIS.run(x, SPEC10); const B = r.I; const lv = level(B);
+  $('big').innerHTML = `${B.toFixed(1)}<small> / 95</small>`;
+  $('pill').className = 'pill ' + lv; $('pill').textContent = 'Bienestar ' + LABEL[lv].toLowerCase();
+  $('lvtext').textContent = LVTEXT[lv];
+  $('mark').style.left = B + '%';
+  $('blocks').innerHTML = ['A','C','Co'].map(b => { const l = level(r[b]);
+    return `<div class="node"><span class="t">${BLOCKS[b]}</span><div class="row"><span class="n">${r[b].toFixed(0)}</span><span class="pill ${l}">${LABEL[l]}</span></div><div class="bar ${l}"><span style="width:${r[b]}%"></span></div><span class="note">${BLOCK_HINT[b]}</span></div>`; }).join('');
+  $('recs').innerHTML = recommendations(x, r, B).map(o => `<li>${o.msg}${o.src?`<span class="src">${o.src}</span>`:''}</li>`).join('');
+  return true;
+}
+
+let edited = false;
+$('f').addEventListener('input', e => {
+  if (e.target.type === 'checkbox') syncCourses();
+  if (!edited) { edited = true; $('exnote').hidden = true; }
+  render();
+});
+$('f').addEventListener('submit', e => { e.preventDefault(); render(); $('res').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); });
+$('blank').addEventListener('click', () => { fill(null); edited = true; $('exnote').hidden = true; render(); window.scrollTo({top:0}); });
+
+fill(EXAMPLE);
+render();
+
+</script>
+
+</body></html>
