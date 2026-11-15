@@ -15,7 +15,7 @@ import fuzzy_engine as fe
 
 st.set_page_config(page_title="Encuesta de bienestar integral", page_icon="🌱", layout="centered")
 
-CURSOS = ["Física", "Analítica de la Web", "Estrategia"]
+CURSOS = ["Física", "Estrategia"]  # los mismos cursos que muestra el Google Form
 LLEVA = ["No", "Sí, ya lo llevé", "Sí, lo estoy llevando este ciclo"]
 LIK = [1, 2, 3, 4, 5]
 ACUERDO = "1 = Totalmente en desacuerdo · 5 = Totalmente de acuerdo"
@@ -73,8 +73,19 @@ def reiniciar():
         del st.session_state[k]
 
 
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+html, body, [class*="st-"], .stMarkdown, .stRadio, .stNumberInput, .stTextInput, .stSelectbox, .stMultiSelect { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+h1, h2, h3 { font-family: 'Space Grotesk', 'Segoe UI', Arial, sans-serif !important; color: #1C1B3A; letter-spacing: -0.01em; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #3D3BB0; font-weight: 600; }
+div[data-testid="stVerticalBlockBorderWrapper"] { background: #FFFFFF; border-radius: 14px; }
+div[data-testid="stMetricValue"] { font-family: 'Space Grotesk', sans-serif; }
+.stButton button[kind="primary"] { border-radius: 10px; font-weight: 600; padding: .6rem 1.4rem; }
+</style>
+<div class="eyebrow">Desfuzzycando el Aprendizaje · encuesta anónima</div>
+""", unsafe_allow_html=True)
 st.title("¿Cómo vas este ciclo?")
-st.caption("Encuesta anónima · Desfuzzycando el Aprendizaje · Inteligencia Computacional, Universidad del Pacífico")
 st.write("Responde sobre tus cursos y sobre ti. Al final verás tu **bienestar integral estimado** (de 5 a 95) "
          "y recomendaciones según tus respuestas. Toma unos 5 minutos.")
 
